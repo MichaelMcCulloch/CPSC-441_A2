@@ -7,11 +7,13 @@
 
 import java.util.*;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 
 
 public class WebServer extends Thread {
-	boolean stop = false;
+	private volatile boolean stop = false;
     /**
      * Default constructor to initialize the web server
      * 

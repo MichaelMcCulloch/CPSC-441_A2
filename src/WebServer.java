@@ -30,6 +30,13 @@ public class WebServer extends Thread {
 	 * 
      */
 	public void run() {
+		while (!stop) {
+			//listen for connection requests
+			//accept new connection
+			//spawn a worker
+			
+		}
+		
 	}
 
 	

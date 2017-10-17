@@ -7,9 +7,13 @@
  *
  */
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,75 +24,60 @@ import java.util.regex.Pattern;
  *
  */
 class HTTPHeaderParser {
-		private int status;
-		private String type;
-		private String subtype;
-		private String lastModified;
-		private int length;
-
-		private String statusRE = "HTTP.* ([0-9]*) .*"; 
-		private Pattern statusPattern = Pattern.compile(statusRE, Pattern.CASE_INSENSITIVE);
-		
-		private String lastModifiedRE = "Last-Modified:[ ]*(.*)";
-		private Pattern lastModifiedPattern = Pattern.compile(lastModifiedRE, Pattern.CASE_INSENSITIVE);
-		
-		private String typeRE = "Content-Type:[ ]*(([\\w]*)/([\\w]*))";
-		private Pattern typePattern = Pattern.compile(typeRE, Pattern.CASE_INSENSITIVE);
-		
-		private String lengthRE = "Content-Length:[ ]*(\\d*)";
-		private Pattern lengthPattern = Pattern.compile(lengthRE, Pattern.CASE_INSENSITIVE);
-		
-		public HTTPHeaderParser(String[] headers) {
-			
-			Matcher httpStatusMatcher = statusPattern.matcher(headers[0]);
-			if (httpStatusMatcher.find()){
-				this.status = Integer.parseInt(httpStatusMatcher.group(1));
-			}
-			if (this.status != 200){
-				return;
-			}
-			
-			for (int i = 1; i < headers.length; i++) {
-				if (headers[i] == null) continue;
-				if (headers[i].contains("Last-Modified:")){
-					Matcher lmMatcher = lastModifiedPattern.matcher(headers[i]);
-					if (lmMatcher.find()){
-						this.lastModified = lmMatcher.group(1);
-					}
-				} else if (headers[i].contains("Content-Type:")){
-					Matcher typeMatcher = typePattern.matcher(headers[i]);
-					if (typeMatcher.find()){
-						this.type = typeMatcher.group(2);
-						this.subtype = typeMatcher.group(3);
-					}
-				} else if (headers[i].contains("Content-Length:")){
-					Matcher lengthMatcher = lengthPattern.matcher(headers[i]);
-					if (lengthMatcher.find()){
-						this.length = Integer.parseInt(lengthMatcher.group(1));
-					}
-				}
-				
-			}
-		}
-		
-		
-
-		public int getStatus() {
-			return status;
-		}
-
-		public String getSubtype() {
-			return subtype;
-		}
-		public String getType() {
-			return type;
-		}
-
-		public String getLastModified() {
-			return lastModified;
-		}
-		
-		public int getLength() {
-			return length;
-		}
+	private boolean wellFormed = true;
+	
+	private Path requestedPath;
+	public boolean isWellFormed() {
+		return wellFormed;
 	}
+
+
+	public Path getRequestedPath() {
+		return requestedPath;
+	}
+
+
+	private double httpType = 0.0;
+
+	private Pattern getPattern = Pattern.compile("GET (.*) HTTP/(1.[10])", Pattern.CASE_INSENSITIVE);
+	private Pattern hostPattern = Pattern.compile("Host:[ ](.*)", Pattern.CASE_INSENSITIVE);
+	
+	
+	public HTTPHeaderParser(String request) {
+		
+		boolean headerEndFound = false;
+		boolean getLineFound = false;
+		boolean hostLineFound = false;
+		
+		Scanner reqScanner = new Scanner(request);
+		ArrayList<String> a = new ArrayList<>();
+		while (reqScanner.hasNextLine()){
+			String nextLine = reqScanner.nextLine();
+			a.add(nextLine);
+		}
+		Matcher getMatcher = getPattern.matcher(a.get(0));
+		if (getMatcher.find()){
+			this.requestedPath = Paths.get(getMatcher.group(1));
+			this.httpType = Double.parseDouble(getMatcher.group(2));
+			getLineFound = true;
+		}
+		
+		
+		for (String headerLine : a) {
+			Matcher hostMatcher = hostPattern.matcher(headerLine);
+			if (hostMatcher.find()){
+				hostLineFound = true;
+			}
+		}
+		
+		if (a.get(a.size()-1).equals("")) {
+			headerEndFound = true;
+		}
+		wellFormed = (headerEndFound && getLineFound && hostLineFound);
+		return;
+		
+	}
+
+
+	
+}

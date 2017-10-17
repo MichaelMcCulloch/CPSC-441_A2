@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Worker implements Runnable{
 	
@@ -13,13 +15,20 @@ public class Worker implements Runnable{
 	
 	public void run(){
 		//Parse Request
+		HTTPHeaderParser hhp = new HTTPHeaderParser(request);
 		//Ensure well-formatted
-		//Get the object
-		//transmit
+		if (hhp.isWellFormed()){
+			//Get the object
+			//transmit			
+		}
 		//close
 	}
 	
-	private void parseRequest(String request) throws FileNotFoundException {
+	private File getTheFile(Path toFile) throws FileNotFoundException {
+		
+		Path fullPath = Paths.get(System.getProperty("user.dir"), toFile.toString());
+		File file = fullPath.toFile();
+		return file;
 		
 	}
 }

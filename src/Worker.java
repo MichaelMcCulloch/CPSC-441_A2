@@ -14,13 +14,21 @@ public class Worker implements Runnable{
 	}
 	
 	public void run(){
-		//Parse Request
-		HTTPHeaderParser hhp = new HTTPHeaderParser(request);
-		//Ensure well-formatted
-		if (hhp.isWellFormed()){
+		
+		
+		try {
+			//Parse Request
+			//Ensure well-formatted
+			HTTPHeaderParser hhp = new HTTPHeaderParser(request);
 			//Get the object
-			//transmit			
+			File toSend = getTheFile(hhp.getRequestedPath());
+		} catch (FileNotFoundException e) {
+			
+		} catch (BadRequestException e) {
+			
 		}
+		//transmit			
+
 		//close
 	}
 	

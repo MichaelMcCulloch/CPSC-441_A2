@@ -7,6 +7,7 @@
  *
  */
 
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParsePosition;
@@ -43,7 +44,7 @@ class HTTPHeaderParser {
 	private Pattern hostPattern = Pattern.compile("Host:[ ](.*)", Pattern.CASE_INSENSITIVE);
 	
 	
-	public HTTPHeaderParser(String request) {
+	public HTTPHeaderParser(String request) throws BadRequestException{
 		
 		boolean headerEndFound = false;
 		boolean getLineFound = false;
@@ -74,6 +75,7 @@ class HTTPHeaderParser {
 			headerEndFound = true;
 		}
 		wellFormed = (headerEndFound && getLineFound && hostLineFound);
+		if (!wellFormed) throw new BadRequestException();
 		return;
 		
 	}

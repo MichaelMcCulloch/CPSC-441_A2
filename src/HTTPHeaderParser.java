@@ -41,14 +41,13 @@ class HTTPHeaderParser {
 	private double httpType = 0.0;
 
 	private Pattern getPattern = Pattern.compile("GET (.*) HTTP/(1.[10])", Pattern.CASE_INSENSITIVE);
-	private Pattern hostPattern = Pattern.compile("Host:[ ](.*)", Pattern.CASE_INSENSITIVE);
 	
 	
 	public HTTPHeaderParser(String request) throws BadRequestException{
 		
 		boolean headerEndFound = false;
 		boolean getLineFound = false;
-		boolean hostLineFound = false;
+		boolean headersOK = true;
 		
 		Scanner reqScanner = new Scanner(request);
 		ArrayList<String> a = new ArrayList<>();
@@ -62,19 +61,19 @@ class HTTPHeaderParser {
 			this.httpType = Double.parseDouble(getMatcher.group(2));
 			getLineFound = true;
 		}
-		
-		
-		for (String headerLine : a) {
-			Matcher hostMatcher = hostPattern.matcher(headerLine);
-			if (hostMatcher.find()){
-				hostLineFound = true;
-			}
-		}
-		
 		if (a.get(a.size()-1).equals("")) {
 			headerEndFound = true;
 		}
-		wellFormed = (headerEndFound && getLineFound && hostLineFound);
+		a.remove(0); a.remove(a.size()-1); //remove first and last.
+		
+		for (String headerLine : a) { //check that each header is of the form "field:value"
+			String[] fieldValue = headerLine.split(":");
+			//if (fieldValue.length != 2) headersOK = false;
+			break;
+		}
+		
+		
+		wellFormed = (headerEndFound && getLineFound && headersOK);
 		if (!wellFormed) throw new BadRequestException();
 		return;
 		

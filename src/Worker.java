@@ -10,16 +10,33 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.TimeZone;
 
 public class Worker implements Runnable{
 	
 	private Socket socket;
-	private String request;
+	private String request="";
 
-	public Worker(Socket socket, String request) {
+	public Worker(Socket socket) {
 		this.socket = socket;
-		this.request = request;
+		int k = 0;
+		try {
+			InputStream is = socket.getInputStream();
+			byte[] buffer = new byte[65535];
+			k = is.read(buffer);
+			byte[] headerBuffer = new byte[k];
+			System.arraycopy(buffer, 0, headerBuffer, 0, k);
+			request = new String(headerBuffer);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NegativeArraySizeException e){
+			//Sometimes the socket input stream is empty. So it get an empty request? It doesn't seem to affect the end output in <<Insert your favorite web browser here>>, so w/e
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public void run(){
@@ -46,7 +63,7 @@ public class Worker implements Runnable{
 			cal.setTimeInMillis(toSend.lastModified());
 			String lastModifiedString = format.format(cal.getTime()); 
 			
-			String message = "HTTP/1/1 400 OK\r\n"
+			String message = "HTTP/1/1 200 OK\r\n"
 					+ "Date: " + dateString + "\r\n"
 					+ "Server: " + myServerName + "\r\n"
 					+ "Last-Modified: " + lastModifiedString + "\r\n"
@@ -60,7 +77,7 @@ public class Worker implements Runnable{
 			fin.read(fileContent);
 			byte[] messageBytes = message.getBytes();
 			
-			response = new byte[(int)(message.length() + fileContent.length)];
+			response = new byte[(int)(messageBytes.length + fileContent.length)];
 			System.arraycopy(messageBytes, 0, response, 0, messageBytes.length);
 			System.arraycopy(fileContent, 0, response, messageBytes.length, fileContent.length);
 			
@@ -72,14 +89,21 @@ public class Worker implements Runnable{
 					+ "Server: " + myServerName + "\r\n"
 					+ "Connection: close\r\n" 
 					+ "\r\n";
+			byte[] messageBytes = message.getBytes();
 			
+			response = new byte[(int)(messageBytes.length)];
+			System.arraycopy(messageBytes, 0, response, 0, messageBytes.length);
 			
 		} catch (BadRequestException e) {
-			String message = "HTTP/1/1 40 Bad Request\r\n"
+			String message = "HTTP/1/1 400 Bad Request\r\n"
 					+ "Date: " + dateString + "\r\n"
 					+ "Server: " + myServerName + "\r\n"
 					+ "Connection: close\r\n" 
 					+ "\r\n";
+			byte[] messageBytes = message.getBytes();
+			
+			response = new byte[(int)(messageBytes.length)];
+			System.arraycopy(messageBytes, 0, response, 0, messageBytes.length);
 		}
 		
 		try {

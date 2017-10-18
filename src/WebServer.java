@@ -6,14 +6,17 @@
  */
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 
 
 
 public class WebServer extends Thread {
 	private volatile boolean stop = false;
+	private int port;
     /**
      * Default constructor to initialize the web server
      * 
@@ -21,7 +24,7 @@ public class WebServer extends Thread {
      * 
      */
 	public WebServer(int port) {
-		
+		this.port = port;
 	}
 
 	
@@ -32,11 +35,45 @@ public class WebServer extends Thread {
 	 * 
      */
 	public void run() {
+		ExecutorService ex = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		ServerSocket ss;
+		try {
+			ss = new ServerSocket(port);
+			ss.setSoTimeout(1000);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return;
+		}
+		
 		while (!stop) {
 			//listen for connection requests
-			//accept new connection
-			//spawn a worker
+			try {
+				
+				//accept new connection 
+				Socket socket = ss.accept();
+				ex.execute(new Worker(socket));
+				//spawn a worker
+			} catch (SocketTimeoutException e) {
+				// It's ok
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
+		}
+		try {
+			ss.close();
+			ex.shutdown();
+			if (!ex.awaitTermination(5, TimeUnit.SECONDS)){
+				ex.shutdownNow();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}

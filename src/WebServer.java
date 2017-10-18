@@ -36,45 +36,45 @@ public class WebServer extends Thread {
      */
 	public void run() {
 		ExecutorService ex = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		ServerSocket ss;
 		try {
-			ss = new ServerSocket(port);
-			ss.setSoTimeout(1000);
+			ServerSocket ss = new ServerSocket(port);
+			ss.setSoTimeout(10);
+			while (!stop) {
+				//listen for connection requests
+				try {
+					
+					//accept new connection 
+					Socket socket = ss.accept();
+					ex.execute(new Worker(socket));
+					//spawn a worker
+				} catch (SocketTimeoutException e) {
+					// It's ok
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			try {
+				ss.close();
+				ex.shutdown();
+				if (!ex.awaitTermination(5, TimeUnit.SECONDS)){
+					ex.shutdownNow();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			return;
 		}
 		
-		while (!stop) {
-			//listen for connection requests
-			try {
-				
-				//accept new connection 
-				Socket socket = ss.accept();
-				ex.execute(new Worker(socket));
-				//spawn a worker
-			} catch (SocketTimeoutException e) {
-				// It's ok
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
-		try {
-			ss.close();
-			ex.shutdown();
-			if (!ex.awaitTermination(5, TimeUnit.SECONDS)){
-				ex.shutdownNow();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		
 	}
 
@@ -92,7 +92,7 @@ public class WebServer extends Thread {
 	 * A simple driver.
 	 */
 	public static void main(String[] args) {
-		int serverPort = 2225;
+		int serverPort = 80;
 
 		// parse command line args
 		if (args.length == 1) {

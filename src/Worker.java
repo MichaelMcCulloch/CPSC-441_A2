@@ -94,6 +94,7 @@ public class Worker implements Runnable{
 			response = new byte[(int)(messageBytes.length)];
 			System.arraycopy(messageBytes, 0, response, 0, messageBytes.length);
 			
+			System.out.println("File not found");
 		} catch (BadRequestException e) {
 			String message = "HTTP/1/1 400 Bad Request\r\n"
 					+ "Date: " + dateString + "\r\n"
@@ -104,6 +105,7 @@ public class Worker implements Runnable{
 			
 			response = new byte[(int)(messageBytes.length)];
 			System.arraycopy(messageBytes, 0, response, 0, messageBytes.length);
+			System.out.println("Bad Request");
 		}
 		
 		try {

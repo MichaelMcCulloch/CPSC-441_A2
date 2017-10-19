@@ -58,7 +58,11 @@ class HTTPHeaderParser {
 		Matcher getMatcher = getPattern.matcher(a.get(0));
 		if (getMatcher.find()){
 			this.requestedPath = Paths.get(getMatcher.group(1));
-			this.httpType = Double.parseDouble(getMatcher.group(2));
+			try {
+				this.httpType = Double.parseDouble(getMatcher.group(2));
+			} catch (Exception e){
+				throw new BadRequestException();
+			}
 			getLineFound = true;
 		}
 		if (a.get(a.size()-1).equals("")) {

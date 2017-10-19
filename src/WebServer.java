@@ -24,6 +24,11 @@ public class WebServer extends Thread {
      * 
      */
 	public WebServer(int port) {
+		if (port < 1024 || port > 65535) {
+			System.out.println(
+					"\nWARNING: Port number not in accepted range, but, by the assignment description requirements, \n"
+					+ "I may not modify the signaure of this method to throw an exception. Otherwise I would.\n");
+		}
 		this.port = port;
 	}
 
